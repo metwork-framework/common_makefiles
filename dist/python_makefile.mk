@@ -66,6 +66,8 @@ devrequirements-notfreezed.txt:
 requirements-notfreezed.txt:
 	touch $@
 
+refresh:: refresh_venv
+
 refresh_venv: ## Update the virtualenv from (dev)requirements-notfreezed.txt
 	rm -f requirements.txt
 	$(MAKE) venv

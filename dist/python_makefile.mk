@@ -1,6 +1,6 @@
 include .common_makefiles/common_makefile.mk
 
-.PHONY: venv devvenv reformat _check_app_dirs refresh refresh_venv lint reformat tests coverage_console coverage_html
+.PHONY: venv devvenv reformat _check_app_dirs refresh_venv lint reformat tests coverage_console coverage_html
 
 VENV_DIR=venv
 PIP=pip3
@@ -65,8 +65,6 @@ devrequirements-notfreezed.txt:
 
 requirements-notfreezed.txt:
 	touch $@
-
-refresh: refresh_venv ## Refresh virtualenv and other things
 
 refresh_venv: ## Update the virtualenv from (dev)requirements-notfreezed.txt
 	rm -f requirements.txt

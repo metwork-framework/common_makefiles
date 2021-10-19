@@ -18,8 +18,8 @@ clean:: ## Clean build and temporary files
 	@rm -Rf .help.txt .refresh_makefiles.tmp
 
 refresh_common_makefiles: ## Refresh common makefiles from repository
-	mkdir -p .refresh_makefiles.tmp
-	cd .refresh_makefiles.tmp && $(GIT_CLONE_DEPTH_1) $(COMMON_MAKEFILES_GIT_URL) && rm -Rf .common_makefiles && mv dist .common_makefiles
+	rm -Rf .refresh_makefiles.tmp && mkdir -p .refresh_makefiles.tmp
+	cd .refresh_makefiles.tmp && $(GIT_CLONE_DEPTH_1) $(COMMON_MAKEFILES_GIT_URL) && rm -Rf ../.common_makefiles && mv common_makefiles/dist ../.common_makefiles
 	rm -Rf .refresh_makefiles.tmp
 
 help::

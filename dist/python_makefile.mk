@@ -76,7 +76,7 @@ refresh_venv: ## Update the virtualenv from (dev)requirements-notfreezed.txt
 	$(MAKE) devvenv
 
 devvenv:: $(VENV_DIR)/.dev ## Make the (dev) virtualenv (with devtools)
-	if test -f setup.py; then $(ENTER_VENV) && python setup.py develop; fi
+	if test -f setup.py; then $(ENTER_VENV) && python setup.py develop || true; fi
 
 $(VENV_DIR)/.dev: devrequirements.txt $(VENV_DIR)/.run
 	$(ENTER_VENV) && $(PIP_INSTALL) -r $<

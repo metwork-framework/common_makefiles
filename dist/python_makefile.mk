@@ -38,7 +38,8 @@ _APP_AND_TEST_DIRS=$(APP_DIRS) $(TEST_DIRS)
 all:: venv
 
 clean::
-	rm -Rf $(VENV_DIR) $(VENV_DIR).temp htmlcov
+	rm -Rf $(VENV_DIR) $(VENV_DIR).temp htmlcov *.egg-info .mypy_cache .pytest_cache
+	find . -type d -name __pycache__ -exec rm -Rf {} \; >/dev/null 2>&1 || true
 
 requirements.txt: requirements-notfreezed.txt
 	rm -Rf $(VENV_DIR).temp
@@ -70,7 +71,7 @@ refresh:: refresh_venv
 
 refresh_venv: ## Update the virtualenv from (dev)requirements-notfreezed.txt
 	rm -f requirements.txt
-	$(MAKE) venv
+	$(MAKE) ven
 	rm -f devrequirements.txt
 	$(MAKE) devvenv
 

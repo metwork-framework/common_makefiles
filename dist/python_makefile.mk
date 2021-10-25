@@ -30,6 +30,7 @@ PYTEST=pytest
 MAKE_VIRTUALENV=$(PYTHON) -m venv
 ENTER_TEMP_VENV=. $(VENV_DIR).temp/bin/activate && unset PYTHONPATH
 ENTER_VENV=. $(VENV_DIR)/bin/activate && unset PYTHONPATH
+SETUP_DEVELOP=$(PYTHON) setup.py develop
 
 APP_DIRS=
 TEST_DIRS=
@@ -53,7 +54,7 @@ $(VENV_DIR)/.run: requirements.txt
 	rm -Rf $(VENV_DIR)
 	$(MAKE_VIRTUALENV) $(VENV_DIR)
 	$(ENTER_VENV) && $(PIP_INSTALL) -r $<
-	touch $@
+	@mkdir -p $(VENV_DIR) ; touch $@
 
 devrequirements.txt: devrequirements-notfreezed.txt requirements.txt
 	rm -Rf $(VENV_DIR).temp
@@ -75,12 +76,15 @@ refresh_venv: ## Update the virtualenv from (dev)requirements-notfreezed.txt
 	rm -f devrequirements.txt
 	$(MAKE) devvenv
 
-devvenv:: $(VENV_DIR)/.dev ## Make the (dev) virtualenv (with devtools)
-	if test -f setup.py; then $(ENTER_VENV) && python setup.py develop || true; fi
+devvenv:: $(VENV_DIR)/.dev $(VENV_DIR)/.setup_develop ## Make the (dev) virtualenv (with devtools)
+
+$(VENV_DIR)/.setup_develop: $(wildcard setup.py)
+	if test "$(SETUP_DEVELOP)" != "" -a -f setup.py; then $(ENTER_VENV) && $(SETUP_DEVELOP); fi
+	@mkdir -p $(VENV_DIR) ; touch $@
 
 $(VENV_DIR)/.dev: devrequirements.txt $(VENV_DIR)/.run
 	$(ENTER_VENV) && $(PIP_INSTALL) -r $<
-	touch $@
+	@mkdir -p $(VENV_DIR) ; touch $@
 
 _check_app_dirs:
 	@if test "$(APP_DIRS)" = ""; then echo "ERROR: override APP_DIRS variable in your Makefile" && exit 1; fi
@@ -95,8 +99,8 @@ lint: devvenv _check_app_dirs ## Lint the code
 	@$(ENTER_VENV) && which $(BANDIT) >/dev/null 2>&1 || exit 0  ; echo "Linting with bandit..." && $(BANDIT) $(BANDIT_LINT_OPTIONS) $(APP_DIRS)
 
 reformat: devvenv _check_app_dirs ## Reformat sources and tests
-	$(ENTER_VENV) && which $(ISORT) >/dev/null 2>&1 && $(ISORT) $(ISORT_REFORMAT_OPTIONS) $(_APP_AND_TEST_DIRS)
-	$(ENTER_VENV) && which $(BLACK) >/dev/null 2>&1 && $(BLACK) $(BLACK_REFORMAT_OPTIONS) $(_APP_AND_TEST_DIRS)
+	$(ENTER_VENV) && which $(ISORT) >/dev/null 2>&1 || exit 0 ; $(ISORT) $(ISORT_REFORMAT_OPTIONS) $(_APP_AND_TEST_DIRS)
+	$(ENTER_VENV) && which $(BLACK) >/dev/null 2>&1 || exit 0 ; $(BLACK) $(BLACK_REFORMAT_OPTIONS) $(_APP_AND_TEST_DIRS)
 
 safety: devvenv ## Check safety of dependencies
 	@$(ENTER_VENV) && which $(SAFETY) >/dev/null 2>&1 || (echo "safety is not installed in you virtualenv"; exit 1)
@@ -104,11 +108,13 @@ safety: devvenv ## Check safety of dependencies
 	@$(ENTER_VENV) && echo "Testing dev dependencies..." && $(SAFETY) check $(SAFETY_CHECK_OPTIONS) -r devrequirements.txt
 
 tests: devvenv ## Execute unit-tests
-	@$(ENTER_VENV) && which $(PYTEST) >/dev/null 2>&1 && export PYTHONPATH=".:${PYTHONPATH}" && pytest $(TEST_DIRS)
+	$(ENTER_VENV) && which $(PYTEST) >/dev/null 2>&1 || exit 0 ; export PYTHONPATH=".:${PYTHONPATH}" && pytest $(TEST_DIRS)
 
 coverage_console: devvenv # Execute unit-tests and show coverage in console
-	@$(ENTER_VENV) && which $(PYTEST) >/dev/null 2>&1 && export PYTHONPATH=".:${PYTHONPATH}" && pytest --cov=$(APP_DIRS) $(TEST_DIRS)
+	@$(ENTER_VENV) && which $(PYTEST) >/dev/null 2>&1 || (echo "pytest is not installed in your virtualenv"; exit 1)
+	$(ENTER_VENV) && export PYTHONPATH=".:${PYTHONPATH}" && pytest --cov=$(APP_DIRS) $(TEST_DIRS)
 
 coverage_html: devvenv # Execute unit-tests and show coverage in html
-	@$(ENTER_VENV) && which $(PYTEST) >/dev/null 2>&1 && export PYTHONPATH=".:${PYTHONPATH}" && pytest --cov-report=html --cov=$(APP_DIRS) $(TEST_DIRS)
+	@$(ENTER_VENV) && which $(PYTEST) >/dev/null 2>&1 || (echo "pytest is not installed in your virtualenv"; exit 1)
+	$(ENTER_VENV) && export PYTHONPATH=".:${PYTHONPATH}" && pytest --cov-report=html --cov=$(APP_DIRS) $(TEST_DIRS)
 

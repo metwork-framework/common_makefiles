@@ -27,6 +27,10 @@ SAFETY_CHECK_OPTIONS=
 PYLINT=pylint
 PYLINT_LINT_OPTIONS=--errors-only --extension-pkg-whitelist=pydantic,_ldap
 PYTEST=pytest
+TWINE=twine
+TWINE_REPOSITORY?=
+TWINE_USERNAME?=
+TWINE_PASSWORD?=
 MAKE_VIRTUALENV=$(PYTHON) -m venv
 ENTER_TEMP_VENV=. $(VENV_DIR).temp/bin/activate && unset PYTHONPATH
 ENTER_VENV=. $(VENV_DIR)/bin/activate && unset PYTHONPATH
@@ -39,7 +43,7 @@ _APP_AND_TEST_DIRS=$(APP_DIRS) $(TEST_DIRS) $(wildcard setup.py)
 all:: venv $(wildcard $(VENV_DIR)/.dev)
 
 clean::
-	rm -Rf $(VENV_DIR) $(VENV_DIR).temp htmlcov *.egg-info .mypy_cache .pytest_cache build
+	rm -Rf $(VENV_DIR) $(VENV_DIR).temp htmlcov *.egg-info .mypy_cache .pytest_cache build dist
 	find . -type d -name __pycache__ -exec rm -Rf {} \; >/dev/null 2>&1 || true
 
 requirements.txt: requirements-notfreezed.txt
@@ -122,5 +126,18 @@ coverage_html: devvenv # Execute unit-tests and show coverage in html
 
 prewheel:
 
+presdist:
+
 wheel: devvenv prewheel # Build wheel
 	$(ENTER_VENV) && python setup.py bdist_wheel
+
+sdist: devvenv presdist # Build sdist
+	$(ENTER_VENV) && python setup.py sdist
+
+upload: devvenv sdist  # Upload to Pypi
+	@if test "$(TWINE_USERNAME)" = ""; then echo "TWINE_USERNAME is empty"; exit 1; fi
+	@if test "$(TWINE_PASSWORD)" = ""; then echo "TWINE_PASSWORD is empty"; exit 1; fi
+	@if test "$(TWINE_REPOSITORY)" = ""; then echo "TWINE_REPOSITORY is empty"; exit 1; fi
+	$(ENTER_VENV) && twine upload --repository-url "$(TWINE_REPOSITORY)" --username "$(TWINE_USERNAME)" --password "$(TWINE_PASSWORD)" dist/*
+	
+

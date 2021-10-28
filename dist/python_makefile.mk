@@ -3,7 +3,7 @@ include .common_makefiles/common_makefile.mk
 .PHONY: venv devvenv reformat _check_app_dirs refresh_venv lint reformat tests coverage_console coverage_html
 
 VENV_DIR=venv
-PIP=pip3 --disable-pip-version-check --no-python-version-warning
+PIP=pip3 --disable-pip-version-check
 PYTHON=python3
 PIP_FREEZE=$(PIP) freeze --all |(grep -v ^pip== ||true) |(grep -v ^setuptools== ||true)
 PIP_INSTALL=$(PIP) install --index-url https://pypi.fury.io/cloufmf/ --extra-index-url https://pypi.org/simple/ --trusted-host pypi.org --trusted-host files.pythonhosted.org --trusted-host pypi.fury.io

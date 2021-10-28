@@ -128,13 +128,13 @@ prewheel:
 
 presdist:
 
-wheel: devvenv prewheel # Build wheel
+wheel: devvenv prewheel ## Build wheel (packaging)
 	$(ENTER_VENV) && python setup.py bdist_wheel
 
-sdist: devvenv presdist # Build sdist
+sdist: devvenv presdist ## Build sdist (packaging)
 	$(ENTER_VENV) && python setup.py sdist
 
-upload: devvenv sdist  # Upload to Pypi
+upload: devvenv sdist  ## Upload to Pypi
 	@if test "$(TWINE_USERNAME)" = ""; then echo "TWINE_USERNAME is empty"; exit 1; fi
 	@if test "$(TWINE_PASSWORD)" = ""; then echo "TWINE_PASSWORD is empty"; exit 1; fi
 	@if test "$(TWINE_REPOSITORY)" = ""; then echo "TWINE_REPOSITORY is empty"; exit 1; fi

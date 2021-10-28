@@ -3,9 +3,9 @@ include .common_makefiles/common_makefile.mk
 .PHONY: venv devvenv reformat _check_app_dirs refresh_venv lint reformat tests coverage_console coverage_html
 
 VENV_DIR=venv
-PIP=pip3
+PIP=pip3 --disable-pip-version-check --no-python-version-warning
 PYTHON=python3
-PIP_FREEZE=$(PIP) freeze
+PIP_FREEZE=$(PIP) freeze --all |(grep -v ^pip== ||true) |(grep -v ^setuptools== ||true)
 PIP_INSTALL=$(PIP) install --index-url https://pypi.fury.io/cloufmf/ --extra-index-url https://pypi.org/simple/ --trusted-host pypi.org --trusted-host files.pythonhosted.org --trusted-host pypi.fury.io
 MAX_LINE_LENGTH=89
 MAX_LINE_LENGTH_MINUS_1=$(shell echo $$(($(MAX_LINE_LENGTH) - 1)))
@@ -34,12 +34,12 @@ SETUP_DEVELOP=$(PYTHON) setup.py develop
 
 APP_DIRS=
 TEST_DIRS=
-_APP_AND_TEST_DIRS=$(APP_DIRS) $(TEST_DIRS)
+_APP_AND_TEST_DIRS=$(APP_DIRS) $(TEST_DIRS) $(wildcard setup.py)
 
-all:: venv
+all:: venv $(wildcard $(VENV_DIR)/.dev)
 
 clean::
-	rm -Rf $(VENV_DIR) $(VENV_DIR).temp htmlcov *.egg-info .mypy_cache .pytest_cache
+	rm -Rf $(VENV_DIR) $(VENV_DIR).temp htmlcov *.egg-info .mypy_cache .pytest_cache build
 	find . -type d -name __pycache__ -exec rm -Rf {} \; >/dev/null 2>&1 || true
 
 requirements.txt: requirements-notfreezed.txt
@@ -82,9 +82,11 @@ $(VENV_DIR)/.setup_develop: $(wildcard setup.py)
 	if test "$(SETUP_DEVELOP)" != "" -a -f setup.py; then $(ENTER_VENV) && $(SETUP_DEVELOP); fi
 	@mkdir -p $(VENV_DIR) ; touch $@
 
-$(VENV_DIR)/.dev: devrequirements.txt $(VENV_DIR)/.run
+$(VENV_DIR)/.dev: devrequirements.txt
+	rm -Rf $(VENV_DIR)
+	$(MAKE_VIRTUALENV) $(VENV_DIR)
 	$(ENTER_VENV) && $(PIP_INSTALL) -r $<
-	@mkdir -p $(VENV_DIR) ; touch $@
+	@mkdir -p $(VENV_DIR) ; touch $@ $(VENV_DIR)/.run
 
 _check_app_dirs:
 	@if test "$(APP_DIRS)" = ""; then echo "ERROR: override APP_DIRS variable in your Makefile" && exit 1; fi
@@ -118,3 +120,7 @@ coverage_html: devvenv # Execute unit-tests and show coverage in html
 	@$(ENTER_VENV) && which $(PYTEST) >/dev/null 2>&1 || (echo "pytest is not installed in your virtualenv"; exit 1)
 	$(ENTER_VENV) && export PYTHONPATH=".:${PYTHONPATH}" && pytest --cov-report=html --cov=$(APP_DIRS) $(TEST_DIRS)
 
+prewheel:
+
+wheel: devvenv prewheel # Build wheel
+	$(ENTER_VENV) && python setup.py bdist_wheel

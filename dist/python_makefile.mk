@@ -76,7 +76,7 @@ refresh:: refresh_venv
 
 refresh_venv: ## Update the virtualenv from (dev)requirements-notfreezed.txt
 	rm -f requirements.txt
-	$(MAKE) ven
+	$(MAKE) venv
 	rm -f devrequirements.txt
 	$(MAKE) devvenv
 
@@ -114,15 +114,15 @@ safety: devvenv ## Check safety of dependencies
 	@$(ENTER_VENV) && echo "Testing dev dependencies..." && $(SAFETY) check $(SAFETY_CHECK_OPTIONS) -r devrequirements.txt
 
 tests: devvenv ## Execute unit-tests
-	$(ENTER_VENV) && which $(PYTEST) >/dev/null 2>&1 || exit 0 ; export PYTHONPATH=".:${PYTHONPATH}" && pytest $(TEST_DIRS)
+	$(ENTER_VENV) && which $(PYTEST) >/dev/null 2>&1 || exit 0 ; export PYTHONPATH="." && pytest $(TEST_DIRS)
 
 coverage_console: devvenv # Execute unit-tests and show coverage in console
 	@$(ENTER_VENV) && which $(PYTEST) >/dev/null 2>&1 || (echo "pytest is not installed in your virtualenv"; exit 1)
-	$(ENTER_VENV) && export PYTHONPATH=".:${PYTHONPATH}" && pytest --cov=$(APP_DIRS) $(TEST_DIRS)
+	$(ENTER_VENV) && export PYTHONPATH="." && pytest --cov=$(APP_DIRS) $(TEST_DIRS)
 
 coverage_html: devvenv # Execute unit-tests and show coverage in html
 	@$(ENTER_VENV) && which $(PYTEST) >/dev/null 2>&1 || (echo "pytest is not installed in your virtualenv"; exit 1)
-	$(ENTER_VENV) && export PYTHONPATH=".:${PYTHONPATH}" && pytest --cov-report=html --cov=$(APP_DIRS) $(TEST_DIRS)
+	$(ENTER_VENV) && export PYTHONPATH="." && pytest --cov-report=html --cov=$(APP_DIRS) $(TEST_DIRS)
 
 prewheel:
 

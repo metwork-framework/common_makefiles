@@ -6,7 +6,13 @@ VENV_DIR=venv
 PIP=pip3 --disable-pip-version-check
 PYTHON=python3
 PIP_FREEZE=$(PIP) freeze --all |(grep -v ^pip== ||true) |(grep -v ^setuptools== ||true)
-PIP_INSTALL=$(PIP) install --index-url https://pypi.fury.io/cloufmf/ --extra-index-url https://pypi.org/simple/ --trusted-host pypi.org --trusted-host files.pythonhosted.org --trusted-host pypi.fury.io
+PIP_INDEX_URL=
+PIP_EXTRA_INDEX_URL=
+_PIP_INDEX_URL_OPT=$(if $(PIP_INDEX_URL),--index-url $(PIP_INDEX_URL),)
+_PIP_EXTRA_INDEX_URL_OPT=$(if $(PIP_EXTRA_INDEX_URL),--extra-index-url $(PIP_EXTRA_INDEX_URL),)
+PIP_TRUSTED_HOSTS=pypi.org files.pythonhosted.org pypi.fury.io
+_PIP_TRUSTED_OPT=$(addprefix --trusted-host ,$(PIP_TRUSTED_HOSTS))
+PIP_INSTALL=$(PIP) install $(_PIP_INDEX_URL_OPT) $(_PIP_EXTRA_INDEX_URL_OPT) $(_PIP_TRUSTED_OPT)
 MAX_LINE_LENGTH=89
 MAX_LINE_LENGTH_MINUS_1=$(shell echo $$(($(MAX_LINE_LENGTH) - 1)))
 BLACK=black

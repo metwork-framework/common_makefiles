@@ -1,6 +1,6 @@
 include .common_makefiles/common_makefile.mk
 
-.PHONY: venv devvenv reformat _check_app_dirs refresh_venv lint reformat tests coverage_console coverage_html
+.PHONY: venv devvenv reformat _check_app_dirs refresh_venv lint reformat tests coverage_console coverage_html coverage_xml
 
 VENV_DIR=venv
 PIP=pip3 --disable-pip-version-check
@@ -49,7 +49,7 @@ _APP_AND_TEST_DIRS=$(APP_DIRS) $(TEST_DIRS) $(wildcard setup.py)
 all:: venv $(wildcard $(VENV_DIR)/.dev)
 
 clean::
-	rm -Rf $(VENV_DIR) $(VENV_DIR).temp htmlcov *.egg-info .mypy_cache .pytest_cache build dist
+	rm -Rf $(VENV_DIR) $(VENV_DIR).temp htmlcov *.egg-info .mypy_cache .pytest_cache build dist coverage.xml .coverage
 	find . -type d -name __pycache__ -exec rm -Rf {} \; >/dev/null 2>&1 || true
 
 requirements.txt: requirements-notfreezed.txt
@@ -102,33 +102,37 @@ _check_app_dirs:
 	@if test "$(APP_DIRS)" = ""; then echo "ERROR: override APP_DIRS variable in your Makefile" && exit 1; fi
 
 lint: devvenv _check_app_dirs ## Lint the code
-	@$(ENTER_VENV) && which $(ISORT) >/dev/null 2>&1 || exit 0 ; echo "Linting with isort..." && $(ISORT) $(ISORT_LINT_OPTIONS) $(_APP_AND_TEST_DIRS) || ( echo "ERROR: lint errors with isort => maybe you can try 'make reformat' to fix this" ; exit 1)
-	@$(ENTER_VENV) && which $(BLACK) >/dev/null 2>&1 || exit 0 ; echo "Linting with black..." && $(BLACK) $(BLACK_LINT_OPTIONS) $(_APP_AND_TEST_DIRS) || ( echo "ERROR: lint errors with black => maybe you can try 'make reformat' to fix this" ; exit 1)
-	@$(ENTER_VENV) && which $(FLAKE8) >/dev/null 2>&1 || exit 0 ; echo "Linting with flake8..." && $(FLAKE8) $(FLAKE8_LINT_OPTIONS) $(_APP_AND_TEST_DIRS)
-	@$(ENTER_VENV) && which $(PYLINT) >/dev/null 2>&1 || exit 0  ; echo "Linting with pylint..." && $(PYLINT) $(PYLINT_LINT_OPTIONS) $(_APP_AND_TEST_DIRS)
-	@$(ENTER_VENV) && which $(MYPY) >/dev/null 2>&1 || exit 0  ; echo "Linting with mypy..." && $(MYPY) $(MYPY_LINT_OPTIONS) $(_APP_AND_TEST_DIRS)
-	@$(ENTER_VENV) && which $(LINTIMPORTS) >/dev/null 2>&1 || exit 0  ; if test -f .importlinter; then echo "Linting with lint-imports..."; $(LINTIMPORTS); fi
-	@$(ENTER_VENV) && which $(BANDIT) >/dev/null 2>&1 || exit 0  ; echo "Linting with bandit..." && $(BANDIT) $(BANDIT_LINT_OPTIONS) $(APP_DIRS)
+	@$(ENTER_VENV) && $(ISORT) --help >/dev/null 2>&1 || exit 0 ; echo "Linting with isort..." && $(ISORT) $(ISORT_LINT_OPTIONS) $(_APP_AND_TEST_DIRS) || ( echo "ERROR: lint errors with isort => maybe you can try 'make reformat' to fix this" ; exit 1)
+	@$(ENTER_VENV) && $(BLACK) --help >/dev/null 2>&1 || exit 0 ; echo "Linting with black..." && $(BLACK) $(BLACK_LINT_OPTIONS) $(_APP_AND_TEST_DIRS) || ( echo "ERROR: lint errors with black => maybe you can try 'make reformat' to fix this" ; exit 1)
+	@$(ENTER_VENV) && $(FLAKE8) --help >/dev/null 2>&1 || exit 0 ; echo "Linting with flake8..." && $(FLAKE8) $(FLAKE8_LINT_OPTIONS) $(_APP_AND_TEST_DIRS)
+	@$(ENTER_VENV) && $(PYLINT) --help >/dev/null 2>&1 || exit 0  ; echo "Linting with pylint..." && $(PYLINT) $(PYLINT_LINT_OPTIONS) $(_APP_AND_TEST_DIRS)
+	@$(ENTER_VENV) && $(MYPY) --help >/dev/null 2>&1 || exit 0  ; echo "Linting with mypy..." && $(MYPY) $(MYPY_LINT_OPTIONS) $(_APP_AND_TEST_DIRS)
+	@$(ENTER_VENV) && $(LINTIMPORTS) --help >/dev/null 2>&1 || exit 0  ; if test -f .importlinter; then echo "Linting with lint-imports..."; $(LINTIMPORTS); fi
+	@$(ENTER_VENV) && $(BANDIT) --help >/dev/null 2>&1 || exit 0  ; echo "Linting with bandit..." && $(BANDIT) $(BANDIT_LINT_OPTIONS) $(APP_DIRS)
 
 reformat: devvenv _check_app_dirs ## Reformat sources and tests
-	$(ENTER_VENV) && which $(ISORT) >/dev/null 2>&1 || exit 0 ; $(ISORT) $(ISORT_REFORMAT_OPTIONS) $(_APP_AND_TEST_DIRS)
-	$(ENTER_VENV) && which $(BLACK) >/dev/null 2>&1 || exit 0 ; $(BLACK) $(BLACK_REFORMAT_OPTIONS) $(_APP_AND_TEST_DIRS)
+	$(ENTER_VENV) && $(ISORT) --help >/dev/null 2>&1 || exit 0 ; $(ISORT) $(ISORT_REFORMAT_OPTIONS) $(_APP_AND_TEST_DIRS)
+	$(ENTER_VENV) && $(BLACK) --help >/dev/null 2>&1 || exit 0 ; $(BLACK) $(BLACK_REFORMAT_OPTIONS) $(_APP_AND_TEST_DIRS)
 
 safety: devvenv ## Check safety of dependencies
-	@$(ENTER_VENV) && which $(SAFETY) >/dev/null 2>&1 || (echo "safety is not installed in you virtualenv"; exit 1)
+	@$(ENTER_VENV) && $(SAFETY) --help >/dev/null 2>&1 || (echo "safety is not installed in you virtualenv"; exit 1)
 	@$(ENTER_VENV) && echo "Testing runtime dependencies..." && $(SAFETY) check $(SAFETY_CHECK_OPTIONS) -r requirements.txt
 	@$(ENTER_VENV) && echo "Testing dev dependencies..." && $(SAFETY) check $(SAFETY_CHECK_OPTIONS) -r devrequirements.txt
 
 tests: devvenv ## Execute unit-tests
-	$(ENTER_VENV) && which $(PYTEST) >/dev/null 2>&1 || exit 0 ; export PYTHONPATH="." && pytest $(TEST_DIRS)
+	$(ENTER_VENV) && $(PYTEST) --help >/dev/null 2>&1 || exit 0 ; export PYTHONPATH="." && $(PYTEST) $(TEST_DIRS)
 
 coverage_console: devvenv # Execute unit-tests and show coverage in console
-	@$(ENTER_VENV) && which $(PYTEST) >/dev/null 2>&1 || (echo "pytest is not installed in your virtualenv"; exit 1)
-	$(ENTER_VENV) && export PYTHONPATH="." && pytest --cov=$(APP_DIRS) $(TEST_DIRS)
+	@$(ENTER_VENV) && $(PYTEST) --help >/dev/null 2>&1 || (echo "pytest is not installed in your virtualenv"; exit 1)
+	$(ENTER_VENV) && export PYTHONPATH="." && $(PYTEST) --cov=$(APP_DIRS) $(TEST_DIRS)
+
+coverage_xml: devvenv # Execute unit-tests and compute coverage.xml file
+	@$(ENTER_VENV) && $(PYTEST) --help >/dev/null 2>&1 || (echo "pytest is not installed in your virtualenv"; exit 1)
+	$(ENTER_VENV) && export PYTHONPATH="." && $(PYTEST) --cov-report=xml --cov=$(APP_DIRS) $(TEST_DIRS)
 
 coverage_html: devvenv # Execute unit-tests and show coverage in html
-	@$(ENTER_VENV) && which $(PYTEST) >/dev/null 2>&1 || (echo "pytest is not installed in your virtualenv"; exit 1)
-	$(ENTER_VENV) && export PYTHONPATH="." && pytest --cov-report=html --cov=$(APP_DIRS) $(TEST_DIRS)
+	@$(ENTER_VENV) && $(PYTEST) --help >/dev/null 2>&1 || (echo "pytest is not installed in your virtualenv"; exit 1)
+	$(ENTER_VENV) && export PYTHONPATH="." && $(PYTEST) --cov-report=html --cov=$(APP_DIRS) $(TEST_DIRS)
 
 prewheel:
 

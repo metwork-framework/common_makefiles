@@ -119,6 +119,7 @@ $(VENV_DIR)/.setup_develop: $(wildcard setup.py)
 $(VENV_DIR)/.dev: devrequirements.txt
 	rm -Rf $(VENV_DIR)
 	$(MAKE_VIRTUALENV) $(VENV_DIR)
+	if test -f predevrequirements.txt; then $(ENTER_VENV) && $(PIP_INSTALL) -r predevrequirements.txt; fi
 	$(ENTER_VENV) && $(PIP_INSTALL) -r $<
 	@mkdir -p $(VENV_DIR) ; touch $@ $(VENV_DIR)/.run
 

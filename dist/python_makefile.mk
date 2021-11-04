@@ -46,15 +46,25 @@ APP_DIRS=
 TEST_DIRS=
 _APP_AND_TEST_DIRS=$(APP_DIRS) $(TEST_DIRS) $(wildcard setup.py)
 
+PREREQ=
+PREDEVREQ=
+ifneq ($(wildcard prerequirements-notfreezed.txt),)
+	PREREQ+=prerequirements.txt
+endif
+ifneq ($(wildcard predevrequirements-notfreezed.txt),)
+	PREDEVREQ+=predevrequirements.txt
+endif
+
 all:: venv $(wildcard $(VENV_DIR)/.dev)
 
 clean::
 	rm -Rf $(VENV_DIR) $(VENV_DIR).temp htmlcov *.egg-info .mypy_cache .pytest_cache build dist coverage.xml .coverage
 	find . -type d -name __pycache__ -exec rm -Rf {} \; >/dev/null 2>&1 || true
 
-requirements.txt: requirements-notfreezed.txt
+requirements.txt: requirements-notfreezed.txt $(PREREQ)
 	rm -Rf $(VENV_DIR).temp
 	$(MAKE_VIRTUALENV) $(VENV_DIR).temp
+	if test -f prerequirements.txt; then $(ENTER_TEMP_VENV) && $(PIP_INSTALL) -r prerequirements.txt; fi
 	$(ENTER_TEMP_VENV) && $(PIP_INSTALL) -r $< && $(PIP_FREEZE) >$@
 	rm -Rf $(VENV_DIR).temp
 
@@ -63,12 +73,26 @@ venv:: $(VENV_DIR)/.run ## Make the (runtime) virtualenv
 $(VENV_DIR)/.run: requirements.txt
 	rm -Rf $(VENV_DIR)
 	$(MAKE_VIRTUALENV) $(VENV_DIR)
+	if test -f prerequirements.txt; then $(ENTER_VENV) && $(PIP_INSTALL) -r prerequirements.txt; fi
 	$(ENTER_VENV) && $(PIP_INSTALL) -r $<
 	@mkdir -p $(VENV_DIR) ; touch $@
 
-devrequirements.txt: devrequirements-notfreezed.txt requirements.txt
+prerequirements.txt: prerequirements-notfreezed.txt 
 	rm -Rf $(VENV_DIR).temp
 	$(MAKE_VIRTUALENV) $(VENV_DIR).temp
+	$(ENTER_TEMP_VENV) && $(PIP_INSTALL) -r $< && $(PIP_FREEZE) >$@
+	rm -Rf $(VENV_DIR).temp
+
+predevrequirements.txt: predevrequirements-notfreezed.txt 
+	rm -Rf $(VENV_DIR).temp
+	$(MAKE_VIRTUALENV) $(VENV_DIR).temp
+	$(ENTER_TEMP_VENV) && $(PIP_INSTALL) -r $< && $(PIP_FREEZE) >$@
+	rm -Rf $(VENV_DIR).temp
+
+devrequirements.txt: devrequirements-notfreezed.txt requirements.txt $(PREDEVREQ)
+	rm -Rf $(VENV_DIR).temp
+	$(MAKE_VIRTUALENV) $(VENV_DIR).temp
+	if test -f predevrequirements.txt; then $(ENTER_TEMP_VENV) && $(PIP_INSTALL) -r predevrequirements.txt; fi
 	$(ENTER_TEMP_VENV) && $(PIP_INSTALL) -r $< && $(PIP_FREEZE) >$@
 	rm -Rf $(VENV_DIR).temp
 

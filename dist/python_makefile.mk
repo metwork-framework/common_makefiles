@@ -51,6 +51,9 @@ PREDEVREQ=
 ifneq ($(wildcard prerequirements-notfreezed.txt),)
 	PREREQ+=prerequirements.txt
 endif
+ifneq ($(wildcard forced-requirements.txt),)
+	PREREQ+=forced-requirements.txt
+endif
 ifneq ($(wildcard predevrequirements-notfreezed.txt),)
 	PREDEVREQ+=predevrequirements.txt
 endif
@@ -65,7 +68,7 @@ requirements.txt: requirements-notfreezed.txt $(PREREQ)
 	rm -Rf $(VENV_DIR).temp
 	$(MAKE_VIRTUALENV) $(VENV_DIR).temp
 	if test -f prerequirements.txt; then $(ENTER_TEMP_VENV) && $(PIP_INSTALL) -r prerequirements.txt; fi
-	$(ENTER_TEMP_VENV) && $(PIP_INSTALL) -r $< && $(PIP_FREEZE) >$@
+	$(ENTER_TEMP_VENV) && $(PIP_INSTALL) -r $< && $(PIP_FREEZE) |$(PYTHON) $(ROOT_DIR)/python_forced_requirements_filter.py forced-requirements.txt >$@
 	rm -Rf $(VENV_DIR).temp
 
 venv:: $(VENV_DIR)/.run ## Make the (runtime) virtualenv

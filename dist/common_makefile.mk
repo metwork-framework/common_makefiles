@@ -5,6 +5,7 @@ SHELL=/bin/bash
 GIT=git
 COMMON_MAKEFILES_GIT_URL=http://github.com/metwork-framework/common_makefiles.git
 GIT_CLONE_DEPTH_1=$(GIT) clone --depth 1
+ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
 
 default:: _make_help_banner all

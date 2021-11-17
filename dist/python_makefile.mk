@@ -96,7 +96,7 @@ devrequirements.txt: devrequirements-notfreezed.txt requirements.txt $(PREDEVREQ
 	rm -Rf $(VENV_DIR).temp
 	$(MAKE_VIRTUALENV) $(VENV_DIR).temp
 	if test -f predevrequirements.txt; then $(ENTER_TEMP_VENV) && $(PIP_INSTALL) -r predevrequirements.txt; fi
-	$(ENTER_TEMP_VENV) && $(PIP_INSTALL) -r $< && $(PIP_FREEZE) >$@
+	$(ENTER_TEMP_VENV) && $(PIP_INSTALL) -r $< && $(PIP_FREEZE) |$(PYTHON) $(ROOT_DIR)/python_forced_requirements_filter.py forced-requirements.txt >$@
 	rm -Rf $(VENV_DIR).temp
 
 devrequirements-notfreezed.txt:

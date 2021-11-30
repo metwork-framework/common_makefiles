@@ -38,9 +38,10 @@ TWINE_REPOSITORY?=
 TWINE_USERNAME?=
 TWINE_PASSWORD?=
 MAKE_VIRTUALENV=$(PYTHON) -m venv
-ENTER_TEMP_VENV=. $(VENV_DIR).temp/bin/activate && unset PYTHONPATH
-ENTER_VENV=. $(VENV_DIR)/bin/activate && unset PYTHONPATH
+ENTER_TEMP_VENV=. $(VENV_DIR).temp/bin/activate
+ENTER_VENV=. $(VENV_DIR)/bin/activate
 SETUP_DEVELOP=$(PYTHON) setup.py develop
+export PYTHONPATH=
 
 APP_DIRS=
 TEST_DIRS=

@@ -151,15 +151,15 @@ safety: devvenv ## Check safety of dependencies
 tests: devvenv ## Execute unit-tests
 	$(ENTER_VENV) && $(PYTEST) --help >/dev/null 2>&1 || exit 0 ; export PYTHONPATH="." && $(PYTEST) $(TEST_DIRS)
 
-coverage_console: devvenv # Execute unit-tests and show coverage in console
+coverage_console: devvenv ## Execute unit-tests and show coverage in console
 	@$(ENTER_VENV) && $(PYTEST) --help >/dev/null 2>&1 || (echo "pytest is not installed in your virtualenv"; exit 1)
 	$(ENTER_VENV) && export PYTHONPATH="." && $(PYTEST) --cov=$(APP_DIRS) $(TEST_DIRS)
 
-coverage_xml: devvenv # Execute unit-tests and compute coverage.xml file
+coverage_xml: devvenv ## Execute unit-tests and compute coverage.xml file
 	@$(ENTER_VENV) && $(PYTEST) --help >/dev/null 2>&1 || (echo "pytest is not installed in your virtualenv"; exit 1)
 	$(ENTER_VENV) && export PYTHONPATH="." && $(PYTEST) --cov-report=xml --cov=$(APP_DIRS) $(TEST_DIRS)
 
-coverage_html: devvenv # Execute unit-tests and show coverage in html
+coverage_html: devvenv ## Execute unit-tests and show coverage in html
 	@$(ENTER_VENV) && $(PYTEST) --help >/dev/null 2>&1 || (echo "pytest is not installed in your virtualenv"; exit 1)
 	$(ENTER_VENV) && export PYTHONPATH="." && $(PYTEST) --cov-report=html --cov=$(APP_DIRS) $(TEST_DIRS)
 

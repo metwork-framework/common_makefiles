@@ -69,7 +69,7 @@ requirements.txt: requirements-notfreezed.txt $(PREREQ)
 	rm -Rf $(VENV_DIR).temp
 	$(MAKE_VIRTUALENV) $(VENV_DIR).temp
 	if test -f prerequirements.txt; then $(ENTER_TEMP_VENV) && $(PIP_INSTALL) -r prerequirements.txt; fi
-	$(ENTER_TEMP_VENV) && $(PIP_INSTALL) -r $< && $(PIP_FREEZE) |$(PYTHON) $(ROOT_DIR)/python_forced_requirements_filter.py forced-requirements.txt >$@
+	$(ENTER_TEMP_VENV) && $(PIP_INSTALL) -r $< && $(PIP_FREEZE) |$(PYTHON) .common_makefiles/python_forced_requirements_filter.py forced-requirements.txt >$@
 	rm -Rf $(VENV_DIR).temp
 
 venv:: $(VENV_DIR)/.run ## Make the (runtime) virtualenv
